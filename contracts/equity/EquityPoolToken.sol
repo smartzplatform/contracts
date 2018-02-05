@@ -11,8 +11,16 @@ pragma solidity ^0.4.18;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
+/**
+ * @title EquityPoolToken
+ * @author boogerwooger <sergey@mixbytes.io>
+ * @dev Contract for distributing 100 tokens as percents between several
+ participants. All incoming pays distribute between participants,according
+ to their tokens' balances. Any owner can withdraw his balance.
+ */
 contract EquityPoolToken {
 	using SafeMath for uint256;
+
 	// using exact 100 tokens denies all float values, so you cannot have 4.34 % 
 	uint8 constant maxEquityTokens = 100;
 	uint8 constant maxOwners = 100;
@@ -23,36 +31,58 @@ contract EquityPoolToken {
 		uint8 equity_balance;
 	}
 
+	/**
+ 	 * @dev Main array of Owners structs. In this minimalistic variant of EquityPoolToken
+	 it's the one, single source of data. All methods use array iterations to find owners.
+ 	 */
 	Owner[] owners;	
 
+	/**
+ 	 * @dev Initializes first Owner{} struct in owners[] array;
+ 	 */
 	function EquityPoolToken()
 		public
 	{
 		owners.push(Owner({addr: msg.sender, ether_balance: 0, equity_balance: maxEquityTokens}));
     }
 
-	// FIXME visiblities
-	// FIXME names
+	event NewOwner(address _new_owner, uint8 _new_amount);
 
+	/**
+ 	 * @dev One of owners adds new owner and gives him some amount of his tokens. New
+	 owner begins with zero ether balance, but, having non-zero equity balance, will
+	 receive correspondig part of all next incoming pays
+ 	 */
 	function addOwner(address _new_owner, uint8 _new_amount) public returns (bool){
-		// TODO addUser kvorum
+		require (msg.sender != _new_owner);
+		require (_new_amount > 0 && _new_amount < maxEquityTokens);
 		require (owners.length < maxOwners);
-		
+
         for (uint8 i=0; i < owners.length; i++) {
             if (owners[i].addr == _new_owner) {
-                throw;
+				revert();
             }
+		}
+        for (i = 0; i < owners.length; i++) {
 			if (owners[i].addr == msg.sender) {
+				require(owners[i].equity_balance >= _new_amount);
 				owners[i].equity_balance -= _new_amount;
 				owners.push(Owner({addr: _new_owner, ether_balance: 0, equity_balance: _new_amount}));
+				NewOwner(_new_owner, _new_amount);
 				return true;
 			}
 		}
+		revert();
     }
 
+	/**
+ 	 * @dev Transfers equity tokens between owners
+ 	 */
 	function transfer(address _to, uint8 _amount) public returns (bool){
+		require(_to != 0x0);
 		require(_amount > 0 && _amount <= maxEquityTokens);
-		// FIXME add checks
+
+		// find two indexes in array - sender and recipient
 		uint8 _fromInd = maxOwners;
 		uint8 _toInd = maxOwners;
 
@@ -76,50 +106,47 @@ contract EquityPoolToken {
 		return true;
 	}
 
-
+	/**
+ 	 * @dev Incoming payment is distributed to token owners' ether balances. They can withdraw it later
+ 	 */
     function () public payable {
         require (msg.value > 0);
         // every equity balance is a percentage of ether distributuion
-        // as percentage, when dividing incoming ether
+		// between all equity token owners
         uint256 undistributedSum = msg.value;
-
-        // TODO defend against gaz lack in the middle of cycle
         
         for (uint8 i = 0; i < owners.length; i++) {
-            uint256 valueToAdd = msg.value * owners[i].equity_balance / 100;
+            uint256 valueToAdd = msg.value * owners[i].equity_balance / maxEquityTokens;
             undistributedSum -= valueToAdd;
             owners[i].ether_balance += valueToAdd;
         }
-        // TODO rounding, deal with rest in 
-     	assert(undistributedSum == 0);   
+
+		require(i == owners.length);
+		// [TODO] check here for rounding errors
+     	require(undistributedSum == 0);   
     }
 
+	/**
+ 	 * @dev Owner withdraws his ether from his balance
+ 	 */
 	function withdraw(uint256 _amount) public returns (bool) {
 		require(_amount > 0);
         for (uint8 i = 0; i < owners.length; i++) {
 			if (owners[i].addr != msg.sender) {
 				continue;
 			}
+
+			assert(owners[i].addr == msg.sender);
 			require(_amount <= owners[i].ether_balance);
+
 			owners[i].ether_balance -= _amount;
         	msg.sender.transfer(_amount);
 			return true;
 		}
-		throw;
-	}
-	// HZZZZZZZZZZZZZZZZZZZZZzz
-	/// @return The Owner
-	function getOwnerByAddress(address _who) public view returns (Owner) {
-		for (uint8 i=0; i < owners.length; i++) {
-			if (owners[i].addr == _who) {
-				return owners[i];
-			}
-		}
-		throw;
+		revert();
 	}
 
-
-    /// @return The balance
+    /// @return returns equity_tokens balance by address. Returns 0 if not found
 	function balanceOf(address _who) public view returns (uint8) {
 		for (uint8 i=0; i < owners.length; i++) {
 			if (owners[i].addr == _who) {
@@ -129,6 +156,7 @@ contract EquityPoolToken {
 		return 0;
 	}
 
+    /// @return returns equity_tokens balance by address. Returns 0 if not found
 	function etherBalanceOf(address _who) public view returns (uint256) {
 		for (uint8 i=0; i < owners.length; i++) {
 			if (owners[i].addr == _who) {

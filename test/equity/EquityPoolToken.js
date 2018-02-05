@@ -1,7 +1,7 @@
 'use strict';
 
 import expectThrow from '../helpers/expectThrow';
-
+import '../helpers/typeExt';
 
 const EquityPoolTokenTestHelper = artifacts.require("../contracts/helpers/EquityPoolTokenTestHelper.sol");
 const l = console.log;
@@ -16,6 +16,11 @@ contract('EquityPoolToken', function(accounts) {
            	extrn1: accounts[3],
            	extrn2: accounts[4]
         };
+    }
+	var MAX_EQUITY_TOKENS = +100; // to force number type
+
+	function assertBigNumberEqual(actual, expected, message=undefined) {
+        assert(actual.eq(expected), "{2}expected {0}, but got: {1}".format(expected, actual, message ? message + ': ' : ''));
     }
 
 	async function displayEquityState(instance) {
@@ -39,93 +44,91 @@ contract('EquityPoolToken', function(accounts) {
 		const instance = await EquityPoolTokenTestHelper.new({from: roles.owner1});
 
 		// check owner1 equity balance == 100 EQT
-		assert.equal(await instance.balanceOf(roles.owner1), 100);
+		await assert.equal(await instance.balanceOf(roles.owner1), 100);
 		// check owner2 equity balance == 0 (new owner)
-		assert.equal(await instance.balanceOf(roles.owner2), 0);
-
-		// check owner1 ether balance == 0
-		assert.equal(await instance.etherBalanceOf(roles.owner1), 0);
+		await assert.equal(await instance.balanceOf(roles.owner2), 0);
 
 		// now owner1 tries to send 40 EQT to owner2 (not added to list of owners)
 		await expectThrow(instance.transfer(roles.owner2, 40, {from: roles.owner1}));
 
+		// await displayEquityState(instance);
 
 		// now owner2 tries to add itself to owners_list, but only owners are allowed to add
 		// other owners and must transfer at least 1 token
-		await expectThrow(instance.addOwner(roles.owner2, 80, {from: roles.owner2}));
 
-		await instance.addOwner(roles.owner2, 1, {from: roles.owner1});
+		await expectThrow(instance.addOwner(roles.owner2, 3, {from: roles.owner2}));
 
-		await displayEquityState(instance);
+		await instance.addOwner(roles.owner2, 7, {from: roles.owner1});
+		assert.equal(await instance.balanceOf(roles.owner2), 7);
+		assert.equal(await instance.balanceOf(roles.owner1), 93);
 
+		// owner1 repeat creation of owner2 (fail), all equity balances still the same
+		await expectThrow( instance.addOwner(roles.owner2, 7, {from: roles.owner1}));
 
-/*
-
-		// check owner2 ether balance == 0
-		assert.equal(await instance.etherBalanceOf(roles.owner2),0);
 		// await displayEquityState(instance);
+		// owner2 try add owner, but haven't enough tokens
+		await expectThrow(instance.addOwner(roles.owner3, 15, {from: roles.owner2}));
 
-		await displayEquityState(instance);
-
-		// [STEP] receive funds. All 100% of funds must be transfered to owner1's balance (he owns 100% of tokens)
-		let firstPayment = web3.toWei(1, "ether");
-		await instance.send(firstPayment, {from: roles.extrn1})
-		// now, ether balance of owner1 must be "firstPayment"
-		assert.equal(await instance.etherBalanceOf(roles.owner1), firstPayment);
-
-		await displayEquityState(instance);
-
-		// [STEP] transfer part of "MAX_EQUITY_TOKENS" from owner1 to owner2
-		let firstTokensTransferred = 33;
-		await instance.transfer(roles.owner2, firstTokensTransferred, {from: roles.owner1})
-		assert.equal(await instance.balanceOf(roles.owner1), MAX_EQUITY_TOKENS - firstTokensTransferred);
-		assert.equal(await instance.balanceOf(roles.owner2), firstTokensTransferred);
-		
-		await displayEquityState(instance);
-
-		// [STEP] receive funds. Now 60% goes to owner1, 40% to owner2
-		let secondPayment = web3.toWei(1, "ether");
-		await instance.send(secondPayment, {from: roles.extrn2})
-		// now, ether balance of owner1 must +100 finney
-		let owner1NowBalance = await instance.etherBalanceOf(roles.owner1);
-		let owner2NowBalance = await instance.etherBalanceOf(roles.owner2);
-
-		let owner1NewBalance = +firstPayment + +(secondPayment * (MAX_EQUITY_TOKENS - firstTokensTransferred) / MAX_EQUITY_TOKENS);
-		let owner2NewBalance = secondPayment * firstTokensTransferred / MAX_EQUITY_TOKENS;
-		assert.equal(+owner1NowBalance, +owner1NewBalance);
-		assert.equal(+owner2NowBalance, +owner2NewBalance);
-
-		await displayEquityState(instance);
-
-		// [STEP] withdraw funds. Now 60% goes to owner1, 40% to owner2
-
-		// extrn2 tries to withdraw funds, fuck him
-		await expectThrow(instance.withdraw(web3.toWei(0.5, "ether"), {from: roles.extrn2}));
-		// owner1 tries to withdraw more funds, than he owns
-		await expectThrow(instance.withdraw(web3.toWei(666, "ether"), {from: roles.owner1}));
-
-		// owner1 and owner2 both tries to withdraw normal amount of funds
-		let owner1FirstWithdraw = web3.toWei(0.3, "ether");
-		let owner2FirstWithdraw = web3.toWei(0.1, "ether");
-
-		await instance.withdraw(owner1FirstWithdraw, {from: roles.owner1});
-		await instance.withdraw(owner2FirstWithdraw, {from: roles.owner2});
-		
-		let owner1LastBalance = await instance.etherBalanceOf(roles.owner1);
-		let owner2LastBalance = await instance.etherBalanceOf(roles.owner2);
-
-		assert.equal(owner1LastBalance, +owner1NewBalance - owner1FirstWithdraw);
-		assert.equal(owner2LastBalance, +owner2NewBalance - owner2FirstWithdraw);
-
-		await displayEquityState(instance);
-*/
+		await instance.addOwner(roles.owner3, 2, {from: roles.owner2});
+		assert.equal(await instance.balanceOf(roles.owner2), 5);
+		assert.equal(await instance.balanceOf(roles.owner3), 2);
+		// owner3 try to add owner1 with 1 token (fail)
+		await expectThrow(instance.addOwner(roles.owner1, 1, {from: roles.owner3}));
+		// await displayEquityState(instance);
 
     });
 
+	it("test ether distrubution for different owners confugrations", async function() {
+        const roles = getRoles();
+		const instance = await EquityPoolTokenTestHelper.new({from: roles.owner1});
 
+		// [STEP] receive funds. All 100% of funds must be transfered to owner1's balance (he owns 100% of tokens)
+		assert.equal(await instance.etherBalanceOf(roles.owner2),0);
+		let payment1 = web3.toWei(777, "finney");
+		await instance.send(payment1, {from: roles.extrn1})
 
+		// await displayEquityState(instance);
+		// now, ether balance of owner1 must be "payment1"
 
+		assert.equal(await instance.etherBalanceOf(roles.owner1), payment1);
 
+		// owner1 tries to withdraw more funds he have
+		await expectThrow(instance.withdraw(web3.toWei(888, "finney"), {from: roles.owner1}));
+		// owner1 withdraws all balance
+		await instance.withdraw(payment1, {from: roles.owner1});
+		await expectThrow(instance.withdraw(web3.toWei(888, "finney"), {from: roles.owner1}));
 
+		// owner1 add owners2 and give him some tokens
+		await instance.addOwner(roles.owner2, 13, {from: roles.owner1});
+		assert.equal(await instance.etherBalanceOf(roles.owner2), 0);
+
+		// owner2 tries to withdraw small funds, but haven't any on its balance
+		await expectThrow(instance.withdraw(web3.toWei(111, "finney"), {from: roles.owner2}));
+
+		// await displayEquityState(instance);
+
+		var payment2 = web3.toWei(100, "finney");
+		await instance.send(payment2, {from: roles.extrn1});
+		let owner1NewBalance = payment2  * (MAX_EQUITY_TOKENS - 13) / MAX_EQUITY_TOKENS;
+		let owner2NewBalance = payment2 * 13 / MAX_EQUITY_TOKENS;
+		assertBigNumberEqual(await instance.etherBalanceOf(roles.owner1), +owner1NewBalance);
+		assertBigNumberEqual(await instance.etherBalanceOf(roles.owner2), +owner2NewBalance);
+
+		// await displayEquityState(instance);
+
+		// owner1 withdraws all invested funds
+		await instance.withdraw(owner1NewBalance, {from: roles.owner1});
+		assertBigNumberEqual(await instance.etherBalanceOf(roles.owner1), 0);
+
+		// await displayEquityState(instance);
+
+		var payment3 = web3.toWei(100, "finney");
+		await instance.send(payment3, {from: roles.extrn2});
+		assertBigNumberEqual(await instance.etherBalanceOf(roles.owner1), payment3  * (MAX_EQUITY_TOKENS - 13) / MAX_EQUITY_TOKENS);
+		assertBigNumberEqual(await instance.etherBalanceOf(roles.owner2), +web3.toWei(13, "finney") + (payment3 * 13 / MAX_EQUITY_TOKENS));
+
+		// await displayEquityState(instance);
+
+    });
 
 });
