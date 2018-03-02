@@ -17,14 +17,14 @@ contract SimpleBallot {
 
     string public ballotName;
 
-    string[] variants;
+    string[] public variants;
 
     mapping(uint=>uint) votesCount;
     mapping(address=>bool) public isVoted;
 
     mapping(bytes32=>uint) variantIds;
 
-    function SimpleBallot() public {
+    function SimpleBallot() public payable {
         ballotName = 'The best city ever';
 
         variants.push(''); // for starting variants from 1 (non-programmers oriented)
@@ -103,17 +103,30 @@ contract SimpleBallot {
     }
 
     /**
-     * Get winning variant (with votes count)
+     * Get winning variant ID
      */
-    function getWinner() public view returns (uint id, string name, uint votes) {
-        votes = votesCount[1];
+    function getWinningVariantId() public view returns (uint id) {
+        uint maxVotes = votesCount[1];
         id = 1;
         for (uint i=2; i<variants.length; ++i) {
-            if (votesCount[i] > votes) {
-                votes = votesCount[i];
+            if (votesCount[i] > maxVotes) {
+                maxVotes = votesCount[i];
                 id = i;
             }
         }
-        name = variants[id];
+    }
+
+    /**
+     * Get winning variant name
+     */
+    function getWinningVariantName() public view returns (string) {
+        return variants[ getWinningVariantId() ];
+    }
+
+    /**
+     * Get winning variant name
+     */
+    function getWinningVariantVotesCount() public view returns (uint) {
+        return votesCount[ getWinningVariantId() ];
     }
 }

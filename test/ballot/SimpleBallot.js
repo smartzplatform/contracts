@@ -43,10 +43,10 @@ contract('SimpleBallot', function(accounts) {
 
     it("complex test", async function() {
 
-        let winnerDescr = await instance.getWinner();
-        assert.equal(1, winnerDescr[0]);
-        assert.equal('Moscow', winnerDescr[1]);
-        assert.equal(0, winnerDescr[2]);
+        
+        assert.equal(1, await instance.getWinningVariantId());
+        assert.equal('Moscow', await instance.getWinningVariantName());
+        assert.equal(0, await instance.getWinningVariantVotesCount());
         assert.equal(0, await instance.getVotesCount(1));
         assert.equal(0, await instance.getVotesCount(2));
         assert.equal(0, await instance.getVotesCount(3));
@@ -55,10 +55,9 @@ contract('SimpleBallot', function(accounts) {
         assert.equal(0, await instance.getVotesCountByName('London'));
 
         await instance.vote(2, {from: role.addr1});
-        winnerDescr = await instance.getWinner();
-        assert.equal(2, winnerDescr[0]);
-        assert.equal('New York', winnerDescr[1]);
-        assert.equal(1, winnerDescr[2]);
+        assert.equal(2, await instance.getWinningVariantId());
+        assert.equal('New York', await instance.getWinningVariantName());
+        assert.equal(1, await instance.getWinningVariantVotesCount());
         assert.equal(0, await instance.getVotesCount(1));
         assert.equal(1, await instance.getVotesCount(2));
         assert.equal(0, await instance.getVotesCount(3));
@@ -67,10 +66,9 @@ contract('SimpleBallot', function(accounts) {
         assert.equal(0, await instance.getVotesCountByName('London'));
 
         await instance.vote(3, {from: role.addr2});
-        winnerDescr = await instance.getWinner();
-        assert.equal(2, winnerDescr[0]);
-        assert.equal('New York', winnerDescr[1]);
-        assert.equal(1, winnerDescr[2]);
+        assert.equal(2, await instance.getWinningVariantId());
+        assert.equal('New York', await instance.getWinningVariantName());
+        assert.equal(1, await instance.getWinningVariantVotesCount());
         assert.equal(0, await instance.getVotesCount(1));
         assert.equal(1, await instance.getVotesCount(2));
         assert.equal(1, await instance.getVotesCount(3));
@@ -79,10 +77,9 @@ contract('SimpleBallot', function(accounts) {
         assert.equal(1, await instance.getVotesCountByName('London'));
 
         await instance.voteByName('Moscow', {from: role.addr3});
-        winnerDescr = await instance.getWinner();
-        assert.equal(1, winnerDescr[0]);
-        assert.equal('Moscow', winnerDescr[1]);
-        assert.equal(1, winnerDescr[2]);
+        assert.equal(1, await instance.getWinningVariantId());
+        assert.equal('Moscow', await instance.getWinningVariantName());
+        assert.equal(1, await instance.getWinningVariantVotesCount());
         assert.equal(1, await instance.getVotesCount(1));
         assert.equal(1, await instance.getVotesCount(2));
         assert.equal(1, await instance.getVotesCount(3));
@@ -91,10 +88,9 @@ contract('SimpleBallot', function(accounts) {
         assert.equal(1, await instance.getVotesCountByName('London'));
 
         await instance.voteByName('New York', {from: role.addr4});
-        winnerDescr = await instance.getWinner();
-        assert.equal(2, winnerDescr[0]);
-        assert.equal('New York', winnerDescr[1]);
-        assert.equal(2, winnerDescr[2]);
+        assert.equal(2, await instance.getWinningVariantId());
+        assert.equal('New York', await instance.getWinningVariantName());
+        assert.equal(2, await instance.getWinningVariantVotesCount());
         assert.equal(1, await instance.getVotesCount(1));
         assert.equal(2, await instance.getVotesCount(2));
         assert.equal(1, await instance.getVotesCount(3));
