@@ -12,12 +12,12 @@ pragma solidity ^0.4.18;
 import "zeppelin-solidity/contracts/token/ERC20Basic.sol";
 
 /**
- * @title SwapTokenAndEther
- * Swap tokens from participant1 to ether of participant2
+ * @title SwapTokenForToken
+ * Swap tokens of participant1 for tokens of participant2
  *
  * @author Vladimir Khramov <vladimir.khramov@smartz.io>
  */
-contract SwapTokenAndEther {
+contract SwapTokenForToken {
 
     address public participant1;
     address public participant2;
@@ -25,17 +25,21 @@ contract SwapTokenAndEther {
     ERC20Basic participant1TokenAddress;
     uint256 participant1TokensCount;
 
-    uint256 participant2EtherCount;
+    ERC20Basic participant2TokenAddress;
+    uint256 participant2TokensCount;
 
     bool public isFinished = false;
 
+    // do not uncomment!
+    // function () external {}
 
-    function SwapTokenAndEther(
+    function SwapTokenForToken(
         address _participant1,
         address _participant1TokenAddress,
         uint256 _participant1TokensCount,
         address _participant2,
-        uint256 _participant2EtherCount
+        address _participant2TokenAddress,
+        uint256 _participant2TokensCount
     ) public {
         participant1 = _participant1;
         participant2 = _participant2;
@@ -43,38 +47,37 @@ contract SwapTokenAndEther {
         participant1TokenAddress = ERC20Basic(_participant1TokenAddress);
         participant1TokensCount = _participant1TokensCount;
 
-        participant2EtherCount = _participant2EtherCount;
+        participant2TokenAddress = ERC20Basic(_participant2TokenAddress);
+        participant2TokensCount = _participant2TokensCount;
     }
 
     function swap() external {
         require(!isFinished);
         require(msg.sender==participant1 || msg.sender==participant2);
 
-        require(this.balance>=participant2EtherCount);
+        uint256 tokens1Balance = participant1TokenAddress.balanceOf(this);
+        require(tokens1Balance >= participant1TokensCount);
 
-        uint256 tokensBalance = participant1TokenAddress.balanceOf(this);
-        require(tokensBalance>=participant1TokensCount);
+        uint256 tokens2Balance = participant2TokenAddress.balanceOf(this);
+        require(tokens2Balance >= participant2TokensCount);
 
-        participant1TokenAddress.transfer(participant2, tokensBalance);
-        participant1.transfer(this.balance);
+        participant1TokenAddress.transfer(participant2, tokens1Balance);
+        participant2TokenAddress.transfer(participant1, tokens2Balance);
 
         isFinished=true;
     }
 
-    function () external payable {
-        require(!isFinished);
-        require(msg.sender==participant2);
-    }
-
     function refund() external {
         if (msg.sender==participant1) {
-            uint256 tokensBalance = participant1TokenAddress.balanceOf(this);
-            require(tokensBalance>0);
+            uint256 tokens1Balance = participant1TokenAddress.balanceOf(this);
+            require(tokens1Balance>0);
 
-            participant1TokenAddress.transfer(participant1, tokensBalance);
+            participant1TokenAddress.transfer(participant1, tokens1Balance);
         } else if (msg.sender==participant2) {
-            require(this.balance>=0);
-            participant2.transfer(this.balance);
+            uint256 tokens2Balance = participant2TokenAddress.balanceOf(this);
+            require(tokens2Balance>0);
+
+            participant2TokenAddress.transfer(participant2, tokens2Balance);
         } else {
             revert();
         }

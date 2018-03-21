@@ -4,13 +4,13 @@ import expectThrow from '../helpers/expectThrow';
 
 
 const Token = artifacts.require("TokenForSwap.sol");
-const Swap = artifacts.require("SwapTokenAndEther.sol");
+const Swap = artifacts.require("SwapTokenForEther.sol");
 const l = console.log;
 
 const finney = x => web3.toWei(x, 'finney');
 const balanceOf =  async addr => web3.eth.getBalance(addr);
 
-contract('SwapTokenAndEther', function(accounts) {
+contract('SwapTokenForEther', function(accounts) {
 
     const role =  {
         tokenOwner: accounts[0],
