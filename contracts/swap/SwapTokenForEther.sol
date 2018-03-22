@@ -55,7 +55,7 @@ contract SwapTokenForEther {
 
     function () external payable {
         require(!isFinished);
-        require(msg.sender==participant2);
+        require(msg.sender == participant2);
 
         if (msg.value > participant2EtherCount) {
             msg.sender.transfer(msg.value - participant2EtherCount);
@@ -70,7 +70,7 @@ contract SwapTokenForEther {
         uint256 tokensBalance = participant1TokenAddress.balanceOf(this);
         require(tokensBalance >= participant1TokensCount);
 
-        isFinished=true;
+        isFinished = true;
 
         participant1TokenAddress.transfer(participant2, tokensBalance);
         participant1.transfer(this.balance);

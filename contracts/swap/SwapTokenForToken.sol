@@ -69,19 +69,19 @@ contract SwapTokenForToken {
         uint256 tokens2Balance = participant2TokenAddress.balanceOf(this);
         require(tokens2Balance >= participant2TokensCount);
 
+        isFinished = true;
+
         participant1TokenAddress.transfer(participant2, tokens1Balance);
         participant2TokenAddress.transfer(participant1, tokens2Balance);
-
-        isFinished=true;
     }
 
     function refund() external {
-        if (msg.sender==participant1) {
+        if (msg.sender == participant1) {
             uint256 tokens1Balance = participant1TokenAddress.balanceOf(this);
             require(tokens1Balance > 0);
 
             participant1TokenAddress.transfer(participant1, tokens1Balance);
-        } else if (msg.sender==participant2) {
+        } else if (msg.sender == participant2) {
             uint256 tokens2Balance = participant2TokenAddress.balanceOf(this);
             require(tokens2Balance > 0);
 
