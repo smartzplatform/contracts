@@ -41,6 +41,7 @@ contract SwapTokenForToken {
         uint256 _participant2TokensCount
     ) public {
         require(_participant1 != _participant2);
+        require(participant1TokenAddress != participant2TokenAddress);
         require(_participant1TokenAddress != address(0));
         require(_participant2TokenAddress != address(0));
         require(_participant1TokensCount > 0);
