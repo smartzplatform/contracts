@@ -78,12 +78,12 @@ contract SwapTokenForToken {
     function refund() external {
         if (msg.sender==participant1) {
             uint256 tokens1Balance = participant1TokenAddress.balanceOf(this);
-            require(tokens1Balance>0);
+            require(tokens1Balance > 0);
 
             participant1TokenAddress.transfer(participant1, tokens1Balance);
         } else if (msg.sender==participant2) {
             uint256 tokens2Balance = participant2TokenAddress.balanceOf(this);
-            require(tokens2Balance>0);
+            require(tokens2Balance > 0);
 
             participant2TokenAddress.transfer(participant2, tokens2Balance);
         } else {

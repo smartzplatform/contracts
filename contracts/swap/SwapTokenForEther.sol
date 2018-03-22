@@ -56,6 +56,10 @@ contract SwapTokenForEther {
     function () external payable {
         require(!isFinished);
         require(msg.sender==participant2);
+
+        if (msg.value > participant2EtherCount) {
+            msg.sender.transfer(msg.value - participant2EtherCount);
+        }
     }
 
     function swap() external {
@@ -73,13 +77,13 @@ contract SwapTokenForEther {
     }
 
     function refund() external {
-        if (msg.sender==participant1) {
+        if (msg.sender == participant1) {
             uint256 tokensBalance = participant1TokenAddress.balanceOf(this);
             require(tokensBalance>0);
 
             participant1TokenAddress.transfer(participant1, tokensBalance);
-        } else if (msg.sender==participant2) {
-            require(this.balance>=0);
+        } else if (msg.sender == participant2) {
+            require(this.balance > 0);
             participant2.transfer(this.balance);
         } else {
             revert();
