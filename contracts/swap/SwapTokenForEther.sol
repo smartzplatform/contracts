@@ -1,11 +1,13 @@
-// Copyright (C) 2017  MixBytes, LLC
-
-// Licensed under the Apache License, Version 2.0 (the "License").
-// You may not use this file except in compliance with the License.
-
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
+/**
+ * Copyright (C) 2018  Smartz, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
+ */
 
 pragma solidity ^0.4.18;
 
@@ -37,6 +39,11 @@ contract SwapTokenForEther {
         address _participant2,
         uint256 _participant2EtherCount
     ) public {
+        require(_participant1 != _participant2);
+        require(_participant1TokenAddress != address(0));
+        require(_participant1TokensCount > 0);
+        require(_participant2EtherCount > 0);
+
         participant1 = _participant1;
         participant2 = _participant2;
 
@@ -46,24 +53,23 @@ contract SwapTokenForEther {
         participant2EtherCount = _participant2EtherCount;
     }
 
+    function () external payable {
+        require(!isFinished);
+        require(msg.sender==participant2);
+    }
+
     function swap() external {
         require(!isFinished);
-        require(msg.sender==participant1 || msg.sender==participant2);
 
-        require(this.balance>=participant2EtherCount);
+        require(this.balance >= participant2EtherCount);
 
         uint256 tokensBalance = participant1TokenAddress.balanceOf(this);
-        require(tokensBalance>=participant1TokensCount);
+        require(tokensBalance >= participant1TokensCount);
 
         isFinished=true;
 
         participant1TokenAddress.transfer(participant2, tokensBalance);
         participant1.transfer(this.balance);
-    }
-
-    function () external payable {
-        require(!isFinished);
-        require(msg.sender==participant2);
     }
 
     function refund() external {

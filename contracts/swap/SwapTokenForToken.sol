@@ -1,11 +1,13 @@
-// Copyright (C) 2017  MixBytes, LLC
-
-// Licensed under the Apache License, Version 2.0 (the "License").
-// You may not use this file except in compliance with the License.
-
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
+/**
+ * Copyright (C) 2018  Smartz, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
+ */
 
 pragma solidity ^0.4.18;
 
@@ -30,9 +32,6 @@ contract SwapTokenForToken {
 
     bool public isFinished = false;
 
-    // do not uncomment!
-    // function () external {}
-
     function SwapTokenForToken(
         address _participant1,
         address _participant1TokenAddress,
@@ -41,6 +40,12 @@ contract SwapTokenForToken {
         address _participant2TokenAddress,
         uint256 _participant2TokensCount
     ) public {
+        require(_participant1 != _participant2);
+        require(_participant1TokenAddress != address(0));
+        require(_participant2TokenAddress != address(0));
+        require(_participant1TokensCount > 0);
+        require(_participant2TokensCount > 0);
+
         participant1 = _participant1;
         participant2 = _participant2;
 
@@ -51,9 +56,12 @@ contract SwapTokenForToken {
         participant2TokensCount = _participant2TokensCount;
     }
 
+    function() external {
+        revert();
+    }
+
     function swap() external {
         require(!isFinished);
-        require(msg.sender==participant1 || msg.sender==participant2);
 
         uint256 tokens1Balance = participant1TokenAddress.balanceOf(this);
         require(tokens1Balance >= participant1TokensCount);

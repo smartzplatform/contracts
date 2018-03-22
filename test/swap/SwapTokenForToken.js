@@ -43,9 +43,6 @@ contract('SwapTokenForToken', function(accounts) {
 
         await expectThrow(instance.swap({from: role.nobody}));
 
-        await expectThrow(instance.swap({from: role.participant1}));
-        await expectThrow(instance.swap({from: role.participant2}));
-
         // nobody can send ether
         await expectThrow(instance.sendTransaction({from: role.participant1, value: 123}));
         await expectThrow(instance.sendTransaction({from: role.participant2, value: 123}));
@@ -53,25 +50,18 @@ contract('SwapTokenForToken', function(accounts) {
         // not full amount
         await token1.transfer(instance.address, 49, {from: role.participant1});
         await expectThrow(instance.swap({from: role.nobody}));
-        await expectThrow(instance.swap({from: role.participant1}));
-        await expectThrow(instance.swap({from: role.participant2}));
 
         // not full amount
         await token2.transfer(instance.address, 19, {from: role.participant2});
         await expectThrow(instance.swap({from: role.nobody}));
-        await expectThrow(instance.swap({from: role.participant1}));
-        await expectThrow(instance.swap({from: role.participant2}));
 
         // not full amount
         await token1.transfer(instance.address, 1, {from: role.participant1});
         await expectThrow(instance.swap({from: role.nobody}));
-        await expectThrow(instance.swap({from: role.participant1}));
-        await expectThrow(instance.swap({from: role.participant2}));
 
         //success
         await token2.transfer(instance.address, 1, {from: role.participant2});
-        await expectThrow(instance.swap({from: role.nobody}));
-        await instance.swap({from: role.participant1});
+        await instance.swap({from: role.nobody});
 
         assert.equal(50, await token1.balanceOf(role.participant2));
         assert.equal(20, await token2.balanceOf(role.participant1));

@@ -42,42 +42,31 @@ contract('SwapTokenForEther', function(accounts) {
 
         await expectThrow(instance.swap({from: role.nobody}));
 
-        await expectThrow(instance.swap({from: role.participant1}));
-        await expectThrow(instance.swap({from: role.participant2}));
-
         // only p2 can send ether
         await expectThrow(instance.sendTransaction({from: role.participant1, value: finney(19)}));
 
         // not full amount
         await token.transfer(instance.address, 49, {from: role.participant1});
         await expectThrow(instance.swap({from: role.nobody}));
-        await expectThrow(instance.swap({from: role.participant1}));
-        await expectThrow(instance.swap({from: role.participant2}));
 
         // not full amount
         await instance.sendTransaction({from: role.participant2, value: finney(19)});
         await expectThrow(instance.swap({from: role.nobody}));
-        await expectThrow(instance.swap({from: role.participant1}));
-        await expectThrow(instance.swap({from: role.participant2}));
 
         // not full amount
         await token.transfer(instance.address, 1, {from: role.participant1});
         await expectThrow(instance.swap({from: role.nobody}));
-        await expectThrow(instance.swap({from: role.participant1}));
-        await expectThrow(instance.swap({from: role.participant2}));
 
         //success
         let part1InitialBalance = await balanceOf(role.participant1);
         await instance.sendTransaction({from: role.participant2, value: finney(1)});
-        await expectThrow(instance.swap({from: role.nobody}));
-        await instance.swap({from: role.participant1});
+        await instance.swap({from: role.nobody});
 
         assert.equal(50, await token.balanceOf(role.participant2));
         assert(part1InitialBalance.add(finney(20)) - await balanceOf(role.participant1) < 100000);
 
         //no second swap
         await expectThrow(instance.swap({from: role.participant1}));
-        await expectThrow(instance.swap({from: role.participant2}));
 
         //no second sending of ether
         await expectThrow(instance.sendTransaction({from: role.participant2, value: finney(19)}));

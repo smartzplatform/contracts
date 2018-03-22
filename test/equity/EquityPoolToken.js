@@ -3,7 +3,7 @@
 import expectThrow from '../helpers/expectThrow';
 import '../helpers/typeExt';
 
-const EquityPoolTokenTestHelper = artifacts.require("../contracts/helpers/EquityPoolTokenTestHelper.sol");
+const EquityPoolTokenTestHelper = artifacts.require("EquityPoolTokenTestHelper.sol");
 const l = console.log;
 
 contract('EquityPoolToken', function(accounts) {
