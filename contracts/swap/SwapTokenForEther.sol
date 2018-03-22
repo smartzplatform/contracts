@@ -72,7 +72,11 @@ contract SwapTokenForEther {
 
         isFinished = true;
 
-        participant1TokenAddress.transfer(participant2, tokensBalance);
+        participant1TokenAddress.transfer(participant2, participant1TokensCount);
+        if (tokensBalance > participant1TokensCount) {
+            participant1TokenAddress.transfer(participant1, tokensBalance - participant1TokensCount);
+        }
+
         participant1.transfer(this.balance);
     }
 

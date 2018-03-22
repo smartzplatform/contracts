@@ -75,7 +75,9 @@ contract('SwapTokenForToken', function(accounts) {
     it("swap more than expected", async function() {
 
         assert.equal(0, await token1.balanceOf(role.participant2));
+        assert.equal(100, await token1.balanceOf(role.participant1));
         assert.equal(0, await token2.balanceOf(role.participant1));
+        assert.equal(100, await token2.balanceOf(role.participant2));
 
 
         await token1.transfer(instance.address, 51, {from: role.participant1});
@@ -83,8 +85,11 @@ contract('SwapTokenForToken', function(accounts) {
 
         await instance.swap({from: role.participant1});
 
-        assert.equal(51, await token1.balanceOf(role.participant2));
-        assert.equal(21, await token2.balanceOf(role.participant1));
+        assert.equal(50, await token1.balanceOf(role.participant2));
+        assert.equal(50, await token1.balanceOf(role.participant1));
+
+        assert.equal(20, await token2.balanceOf(role.participant1));
+        assert.equal(80, await token2.balanceOf(role.participant2));
     });
 
     it("refund", async function() {
@@ -113,20 +118,20 @@ contract('SwapTokenForToken', function(accounts) {
         await instance.swap({from: role.participant2});
 
         // p1
-        assert.equal(49, await token1.balanceOf(role.participant1));
+        assert.equal(50, await token1.balanceOf(role.participant1));
         await token1.transfer(instance.address, 10, {from: role.participant1});
-        assert.equal(39, await token1.balanceOf(role.participant1));
+        assert.equal(40, await token1.balanceOf(role.participant1));
         await expectThrow(instance.refund({from: role.nobody}));
         await instance.refund({from: role.participant1});
-        assert.equal(49, await token1.balanceOf(role.participant1));
+        assert.equal(50, await token1.balanceOf(role.participant1));
 
         // p2
-        assert.equal(49, await token2.balanceOf(role.participant2));
+        assert.equal(80, await token2.balanceOf(role.participant2));
         await token2.transfer(instance.address, 10, {from: role.participant2});
-        assert.equal(39, await token2.balanceOf(role.participant2));
+        assert.equal(70, await token2.balanceOf(role.participant2));
         await expectThrow(instance.refund({from: role.nobody}));
         await instance.refund({from: role.participant2});
-        assert.equal(49, await token2.balanceOf(role.participant2));
+        assert.equal(80, await token2.balanceOf(role.participant2));
     });
 
 });

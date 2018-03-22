@@ -41,7 +41,7 @@ contract SwapTokenForToken {
         uint256 _participant2TokensCount
     ) public {
         require(_participant1 != _participant2);
-        require(participant1TokenAddress != participant2TokenAddress);
+        require(_participant1TokenAddress != _participant2TokenAddress);
         require(_participant1TokenAddress != address(0));
         require(_participant2TokenAddress != address(0));
         require(_participant1TokensCount > 0);
@@ -72,8 +72,15 @@ contract SwapTokenForToken {
 
         isFinished = true;
 
-        participant1TokenAddress.transfer(participant2, tokens1Balance);
-        participant2TokenAddress.transfer(participant1, tokens2Balance);
+        participant1TokenAddress.transfer(participant2, participant1TokensCount);
+        if (tokens1Balance > participant1TokensCount) {
+            participant1TokenAddress.transfer(participant1, tokens1Balance - participant1TokensCount);
+        }
+
+        participant2TokenAddress.transfer(participant1, participant2TokensCount);
+        if (tokens2Balance > participant2TokensCount) {
+            participant2TokenAddress.transfer(participant2, tokens2Balance - participant2TokensCount);
+        }
     }
 
     function refund() external {

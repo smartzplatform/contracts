@@ -75,6 +75,7 @@ contract('SwapTokenForEther', function(accounts) {
     it("swap more than expected", async function() {
 
         assert.equal(0, await token.balanceOf(role.participant2));
+        assert.equal(100, await token.balanceOf(role.participant1));
 
         let part2InitialBalance = await balanceOf(role.participant2);
         await instance.sendTransaction({from: role.participant2, value: finney(21)});
@@ -87,7 +88,8 @@ contract('SwapTokenForEther', function(accounts) {
         let part1InitialBalance = await balanceOf(role.participant1);
         await instance.swap({from: role.participant1});
 
-        assert.equal(51, await token.balanceOf(role.participant2));
+        assert.equal(50, await token.balanceOf(role.participant1));
+        assert.equal(50, await token.balanceOf(role.participant2));
         assert(part1InitialBalance.add(finney(20)) - await balanceOf(role.participant1) < 100000);
     });
 
@@ -116,12 +118,12 @@ contract('SwapTokenForEther', function(accounts) {
         await instance.swap({from: role.participant2});
 
         // p1
-        assert.equal(49, await token.balanceOf(role.participant1));
-        await token.transfer(instance.address, 44, {from: role.participant1});
+        assert.equal(50, await token.balanceOf(role.participant1));
+        await token.transfer(instance.address, 45, {from: role.participant1});
         assert.equal(5, await token.balanceOf(role.participant1));
         await expectThrow(instance.refund({from: role.nobody}));
         await instance.refund({from: role.participant1});
-        assert.equal(49, await token.balanceOf(role.participant1));
+        assert.equal(50, await token.balanceOf(role.participant1));
 
         // p2
         await expectThrow(instance.sendTransaction({from: role.participant2, value: finney(19)}));
