@@ -12,6 +12,7 @@
 pragma solidity ^0.4.18;
 
 import "zeppelin-solidity/contracts/token/ERC20Basic.sol";
+import "./SwapBase.sol";
 
 /**
  * @title SwapTokenForToken
@@ -19,16 +20,10 @@ import "zeppelin-solidity/contracts/token/ERC20Basic.sol";
  *
  * @author Vladimir Khramov <vladimir.khramov@smartz.io>
  */
-contract SwapTokenForToken {
+contract SwapTokenForToken is SwapBase {
 
-    address public participant1;
-    address public participant2;
-
-    ERC20Basic participant1TokenAddress;
-    uint256 participant1TokensCount;
-
-    ERC20Basic participant2TokenAddress;
-    uint256 participant2TokensCount;
+    Participant public participant1;
+    Participant public participant2;
 
     bool public isFinished = false;
 
@@ -47,14 +42,8 @@ contract SwapTokenForToken {
         require(_participant1TokensCount > 0);
         require(_participant2TokensCount > 0);
 
-        participant1 = _participant1;
-        participant2 = _participant2;
-
-        participant1TokenAddress = ERC20Basic(_participant1TokenAddress);
-        participant1TokensCount = _participant1TokensCount;
-
-        participant2TokenAddress = ERC20Basic(_participant2TokenAddress);
-        participant2TokensCount = _participant2TokensCount;
+        participant1 = Participant(_participant1, ERC20Basic(_participant1TokenAddress), _participant1TokensCount);
+        participant2 = Participant(_participant2, ERC20Basic(_participant2TokenAddress), _participant2TokensCount);
     }
 
     function() external {
@@ -64,36 +53,36 @@ contract SwapTokenForToken {
     function swap() external {
         require(!isFinished);
 
-        uint256 tokens1Balance = participant1TokenAddress.balanceOf(this);
-        require(tokens1Balance >= participant1TokensCount);
+        uint256 tokens1Balance = participant1.tokenAddr.balanceOf(this);
+        require(tokens1Balance >= participant1.tokensCount);
 
-        uint256 tokens2Balance = participant2TokenAddress.balanceOf(this);
-        require(tokens2Balance >= participant2TokensCount);
+        uint256 tokens2Balance = participant2.tokenAddr.balanceOf(this);
+        require(tokens2Balance >= participant2.tokensCount);
 
         isFinished = true;
 
-        participant1TokenAddress.transfer(participant2, participant1TokensCount);
-        if (tokens1Balance > participant1TokensCount) {
-            participant1TokenAddress.transfer(participant1, tokens1Balance - participant1TokensCount);
+        participant1.tokenAddr.transfer(participant2.addr, participant1.tokensCount);
+        if (tokens1Balance > participant1.tokensCount) {
+            participant1.tokenAddr.transfer(participant1.addr, tokens1Balance - participant1.tokensCount);
         }
 
-        participant2TokenAddress.transfer(participant1, participant2TokensCount);
-        if (tokens2Balance > participant2TokensCount) {
-            participant2TokenAddress.transfer(participant2, tokens2Balance - participant2TokensCount);
+        participant2.tokenAddr.transfer(participant1.addr, participant2.tokensCount);
+        if (tokens2Balance > participant2.tokensCount) {
+            participant2.tokenAddr.transfer(participant2.addr, tokens2Balance - participant2.tokensCount);
         }
     }
 
     function refund() external {
-        if (msg.sender == participant1) {
-            uint256 tokens1Balance = participant1TokenAddress.balanceOf(this);
+        if (msg.sender == participant1.addr) {
+            uint256 tokens1Balance = participant1.tokenAddr.balanceOf(this);
             require(tokens1Balance > 0);
 
-            participant1TokenAddress.transfer(participant1, tokens1Balance);
-        } else if (msg.sender == participant2) {
-            uint256 tokens2Balance = participant2TokenAddress.balanceOf(this);
+            participant1.tokenAddr.transfer(participant1.addr, tokens1Balance);
+        } else if (msg.sender == participant2.addr) {
+            uint256 tokens2Balance = participant2.tokenAddr.balanceOf(this);
             require(tokens2Balance > 0);
 
-            participant2TokenAddress.transfer(participant2, tokens2Balance);
+            participant2.tokenAddr.transfer(participant2.addr, tokens2Balance);
         } else {
             revert();
         }
