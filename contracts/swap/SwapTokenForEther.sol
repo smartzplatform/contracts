@@ -24,10 +24,10 @@ contract SwapTokenForEther {
     address public participant1;
     address public participant2;
 
-    ERC20Basic participant1Token;
-    uint256 participant1TokensCount;
+    ERC20Basic public participant1Token;
+    uint256 public participant1TokensCount;
 
-    uint256 participant2EtherCount;
+    uint256 public participant2EtherCount;
 
     bool public isFinished = false;
 
