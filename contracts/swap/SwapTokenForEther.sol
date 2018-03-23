@@ -51,6 +51,9 @@ contract SwapTokenForEther is SwapBase {
         participant2EtherCount = _participant2EtherCount;
     }
 
+    /**
+     * Ether accepted
+     */
     function () external payable {
         require(!isFinished);
         require(msg.sender == participant2);
@@ -60,6 +63,9 @@ contract SwapTokenForEther is SwapBase {
         }
     }
 
+    /**
+     * Swap tokens for ether
+     */
     function swap() external {
         require(!isFinished);
 
@@ -78,6 +84,9 @@ contract SwapTokenForEther is SwapBase {
         participant1.addr.transfer(this.balance);
     }
 
+    /**
+     * Refund tokens or ether by participants
+     */
     function refund() external {
         if (msg.sender == participant1.addr) {
             uint256 tokensBalance = participant1.tokenAddr.balanceOf(this);

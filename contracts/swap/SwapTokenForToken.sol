@@ -27,6 +27,9 @@ contract SwapTokenForToken is SwapBase {
 
     bool public isFinished = false;
 
+    /**
+     * Constructor
+     */
     function SwapTokenForToken(
         address _participant1,
         address _participant1TokenAddress,
@@ -46,10 +49,16 @@ contract SwapTokenForToken is SwapBase {
         participant2 = Participant(_participant2, ERC20Basic(_participant2TokenAddress), _participant2TokensCount);
     }
 
+    /**
+     * No direct payments
+     */
     function() external {
         revert();
     }
 
+    /**
+     * Swap tokens for tokens
+     */
     function swap() external {
         require(!isFinished);
 
@@ -72,6 +81,9 @@ contract SwapTokenForToken is SwapBase {
         }
     }
 
+    /**
+     * Refund tokens by participants
+     */
     function refund() external {
         if (msg.sender == participant1.addr) {
             uint256 tokens1Balance = participant1.tokenAddr.balanceOf(this);
