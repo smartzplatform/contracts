@@ -81,6 +81,10 @@ contract SwapTokenForToken {
 
         isFinished = true;
 
+        //check transfer
+        uint token1Participant2InitialBalance = participant1Token.balanceOf(participant2);
+        uint token2Participant1InitialBalance = participant2Token.balanceOf(participant1);
+
         participant1Token.transfer(participant2, participant1TokensCount);
         if (tokens1Balance > participant1TokensCount) {
             participant1Token.transfer(participant1, tokens1Balance - participant1TokensCount);
@@ -90,6 +94,11 @@ contract SwapTokenForToken {
         if (tokens2Balance > participant2TokensCount) {
             participant2Token.transfer(participant2, tokens2Balance - participant2TokensCount);
         }
+
+
+        //check transfer
+        assert(participant1Token.balanceOf(participant2) >= token1Participant2InitialBalance+participant1TokensCount);
+        assert(participant2Token.balanceOf(participant1) >= token2Participant1InitialBalance+participant2TokensCount);
     }
 
     /**

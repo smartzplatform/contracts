@@ -78,12 +78,18 @@ contract SwapTokenForEther {
 
         isFinished = true;
 
+        //check transfer
+        uint token1Participant2InitialBalance = participant1Token.balanceOf(participant2);
+
         participant1Token.transfer(participant2, participant1TokensCount);
         if (tokensBalance > participant1TokensCount) {
             participant1Token.transfer(participant1, tokensBalance - participant1TokensCount);
         }
 
         participant1.transfer(this.balance);
+
+        //check transfer
+        assert(participant1Token.balanceOf(participant2) >= token1Participant2InitialBalance+participant1TokensCount);
     }
 
     /**
