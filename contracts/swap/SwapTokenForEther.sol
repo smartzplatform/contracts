@@ -24,7 +24,7 @@ contract SwapTokenForEther {
     address public participant1;
     address public participant2;
 
-    ERC20Basic participant1TokenAddress;
+    ERC20Basic participant1Token;
     uint256 participant1TokensCount;
 
     uint256 participant2EtherCount;
@@ -47,7 +47,7 @@ contract SwapTokenForEther {
         participant1 = _participant1;
         participant2 = _participant2;
 
-        participant1TokenAddress = ERC20Basic(_participant1TokenAddress);
+        participant1Token = ERC20Basic(_participant1TokenAddress);
         participant1TokensCount = _participant1TokensCount;
 
         participant2EtherCount = _participant2EtherCount;
@@ -73,14 +73,14 @@ contract SwapTokenForEther {
 
         require(this.balance >= participant2EtherCount);
 
-        uint256 tokensBalance = participant1TokenAddress.balanceOf(this);
+        uint256 tokensBalance = participant1Token.balanceOf(this);
         require(tokensBalance >= participant1TokensCount);
 
         isFinished = true;
 
-        participant1TokenAddress.transfer(participant2, participant1TokensCount);
+        participant1Token.transfer(participant2, participant1TokensCount);
         if (tokensBalance > participant1TokensCount) {
-            participant1TokenAddress.transfer(participant1, tokensBalance - participant1TokensCount);
+            participant1Token.transfer(participant1, tokensBalance - participant1TokensCount);
         }
 
         participant1.transfer(this.balance);
@@ -91,10 +91,10 @@ contract SwapTokenForEther {
      */
     function refund() external {
         if (msg.sender == participant1) {
-            uint256 tokensBalance = participant1TokenAddress.balanceOf(this);
+            uint256 tokensBalance = participant1Token.balanceOf(this);
             require(tokensBalance>0);
 
-            participant1TokenAddress.transfer(participant1, tokensBalance);
+            participant1Token.transfer(participant1, tokensBalance);
         } else if (msg.sender == participant2) {
             require(this.balance > 0);
             participant2.transfer(this.balance);

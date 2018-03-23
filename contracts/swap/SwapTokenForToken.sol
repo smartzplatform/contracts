@@ -24,10 +24,10 @@ contract SwapTokenForToken {
     address public participant1;
     address public participant2;
 
-    ERC20Basic participant1TokenAddress;
+    ERC20Basic participant1Token;
     uint256 participant1TokensCount;
 
-    ERC20Basic participant2TokenAddress;
+    ERC20Basic participant2Token;
     uint256 participant2TokensCount;
 
     bool public isFinished = false;
@@ -53,10 +53,10 @@ contract SwapTokenForToken {
         participant1 = _participant1;
         participant2 = _participant2;
 
-        participant1TokenAddress = ERC20Basic(_participant1TokenAddress);
+        participant1Token = ERC20Basic(_participant1TokenAddress);
         participant1TokensCount = _participant1TokensCount;
 
-        participant2TokenAddress = ERC20Basic(_participant2TokenAddress);
+        participant2Token = ERC20Basic(_participant2TokenAddress);
         participant2TokensCount = _participant2TokensCount;
     }
 
@@ -73,22 +73,22 @@ contract SwapTokenForToken {
     function swap() external {
         require(!isFinished);
 
-        uint256 tokens1Balance = participant1TokenAddress.balanceOf(this);
+        uint256 tokens1Balance = participant1Token.balanceOf(this);
         require(tokens1Balance >= participant1TokensCount);
 
-        uint256 tokens2Balance = participant2TokenAddress.balanceOf(this);
+        uint256 tokens2Balance = participant2Token.balanceOf(this);
         require(tokens2Balance >= participant2TokensCount);
 
         isFinished = true;
 
-        participant1TokenAddress.transfer(participant2, participant1TokensCount);
+        participant1Token.transfer(participant2, participant1TokensCount);
         if (tokens1Balance > participant1TokensCount) {
-            participant1TokenAddress.transfer(participant1, tokens1Balance - participant1TokensCount);
+            participant1Token.transfer(participant1, tokens1Balance - participant1TokensCount);
         }
 
-        participant2TokenAddress.transfer(participant1, participant2TokensCount);
+        participant2Token.transfer(participant1, participant2TokensCount);
         if (tokens2Balance > participant2TokensCount) {
-            participant2TokenAddress.transfer(participant2, tokens2Balance - participant2TokensCount);
+            participant2Token.transfer(participant2, tokens2Balance - participant2TokensCount);
         }
     }
 
@@ -97,15 +97,15 @@ contract SwapTokenForToken {
      */
     function refund() external {
         if (msg.sender == participant1) {
-            uint256 tokens1Balance = participant1TokenAddress.balanceOf(this);
+            uint256 tokens1Balance = participant1Token.balanceOf(this);
             require(tokens1Balance > 0);
 
-            participant1TokenAddress.transfer(participant1, tokens1Balance);
+            participant1Token.transfer(participant1, tokens1Balance);
         } else if (msg.sender == participant2) {
-            uint256 tokens2Balance = participant2TokenAddress.balanceOf(this);
+            uint256 tokens2Balance = participant2Token.balanceOf(this);
             require(tokens2Balance > 0);
 
-            participant2TokenAddress.transfer(participant2, tokens2Balance);
+            participant2Token.transfer(participant2, tokens2Balance);
         } else {
             revert();
         }
