@@ -48,10 +48,12 @@ contract('SwapTokenForEther', function(accounts) {
         // not full amount
         await token.transfer(instance.address, 49, {from: role.participant1});
         await expectThrow(instance.swap({from: role.nobody}));
+        assert.equal(49, await instance.participant1SentTokensCount());
 
         // not full amount
         await instance.sendTransaction({from: role.participant2, value: finney(19)});
         await expectThrow(instance.swap({from: role.nobody}));
+        assert.equal(finney(19), await instance.participant2SentEtherCount());
 
         // not full amount
         await token.transfer(instance.address, 1, {from: role.participant1});

@@ -119,4 +119,18 @@ contract SwapTokenForToken {
             revert();
         }
     }
+
+    /**
+     * Tokens count sent by participant #1
+     */
+    function participant1SentTokensCount() public view returns (uint256) {
+        return participant1Token.balanceOf(this);
+    }
+
+    /**
+     * Tokens count sent by participant #2
+     */
+    function participant2SentTokensCount() public view returns (uint256) {
+        return participant2Token.balanceOf(this);
+    }
 }

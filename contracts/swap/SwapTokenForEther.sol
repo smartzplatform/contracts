@@ -108,4 +108,18 @@ contract SwapTokenForEther {
             revert();
         }
     }
+
+    /**
+     * Tokens count sent by participant #1
+     */
+    function participant1SentTokensCount() public view returns (uint256) {
+        return participant1Token.balanceOf(this);
+    }
+
+    /**
+     * Ether count sent by participant #2
+     */
+    function participant2SentEtherCount() public view returns (uint256) {
+        return this.balance;
+    }
 }
