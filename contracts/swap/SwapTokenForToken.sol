@@ -85,14 +85,18 @@ contract SwapTokenForToken {
         uint token1Participant2InitialBalance = participant1Token.balanceOf(participant2);
         uint token2Participant1InitialBalance = participant2Token.balanceOf(participant1);
 
-        participant1Token.transfer(participant2, participant1TokensCount);
+        require(participant1Token.transfer(participant2, participant1TokensCount));
         if (tokens1Balance > participant1TokensCount) {
-            participant1Token.transfer(participant1, tokens1Balance - participant1TokensCount);
+            require(
+                participant1Token.transfer(participant1, tokens1Balance - participant1TokensCount)
+            );
         }
 
-        participant2Token.transfer(participant1, participant2TokensCount);
+        require(participant2Token.transfer(participant1, participant2TokensCount));
         if (tokens2Balance > participant2TokensCount) {
-            participant2Token.transfer(participant2, tokens2Balance - participant2TokensCount);
+            require(
+                participant2Token.transfer(participant2, tokens2Balance - participant2TokensCount)
+            );
         }
 
 
