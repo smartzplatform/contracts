@@ -184,7 +184,7 @@ contract Booking is Ownable {
         emit StateChanged(_newState);
     }
 
-    function getCurrentTime() public view returns (uint256) {
+    function getCurrentTime() internal view returns (uint256) {
         return now;
     }
 
