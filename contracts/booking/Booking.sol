@@ -24,14 +24,14 @@ contract Booking is Ownable {
         string _fileUrl,
         bytes32 _fileHash,
         uint256 _price,
-        uint256 _penalty,
+        uint256 _cancellationFee,
         uint256 _rentDateStart,
         uint256 _rentDateEnd,
         uint256 _noCancelPeriod,
         uint256 _acceptObjectPeriod
     ) public payable {
         require(_price > 0);
-        require(_price > _penalty);
+        require(_price > _cancellationFee);
         require(_rentDateStart > getCurrentTime());
         require(_rentDateEnd > _rentDateStart);
 
@@ -42,7 +42,7 @@ contract Booking is Ownable {
         m_fileUrl = _fileUrl;
         m_fileHash = _fileHash;
         m_price = _price;
-        m_penalty = _penalty;
+        m_cancellationFee = _cancellationFee;
         m_rentDateStart = _rentDateStart;
         m_rentDateEnd = _rentDateEnd;
         m_noCancelPeriod = _noCancelPeriod;
@@ -79,7 +79,7 @@ contract Booking is Ownable {
 
 
     uint256 public m_price;
-    uint256 public m_penalty;
+    uint256 public m_cancellationFee;
 
     uint256 public m_rentDateStart;
     uint256 public m_rentDateEnd;
@@ -111,12 +111,12 @@ contract Booking is Ownable {
 
 
     function rejectPayment() external onlyOwner onlyState(State.PAID) {
-        refundWithoutPenalty();
+        refundWithoutCancellationFee();
     }
 
 
     function refund() external onlyClient onlyState(State.PAID) {
-        refundWithoutPenalty();
+        refundWithoutCancellationFee();
     }
 
     function startRent() external onlyClient onlyState(State.NO_CANCEL) {
@@ -133,7 +133,7 @@ contract Booking is Ownable {
             require(msg.sender == m_client);
         }
 
-        refundWithPenalty();
+        refundWithCancellationFee();
     }
 
     /************************** PUBLIC **********************/
@@ -190,7 +190,7 @@ contract Booking is Ownable {
 
     /************************** PRIVATE **********************/
 
-    function refundWithoutPenalty() private  {
+    function refundWithoutCancellationFee() private  {
         address client = m_client;
         m_client = address(0);
         changeState(State.OFFER);
@@ -199,12 +199,12 @@ contract Booking is Ownable {
         client.transfer(address(this).balance);
     }
 
-    function refundWithPenalty() private {
+    function refundWithCancellationFee() private {
         address client = m_client;
         m_client = address(0);
         changeState(State.OFFER);
 
-        owner.transfer(m_penalty);
+        owner.transfer(m_cancellationFee);
         client.transfer(address(this).balance);
     }
 
