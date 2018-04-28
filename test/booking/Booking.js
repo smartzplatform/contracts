@@ -24,7 +24,8 @@ contract('Booking', function(accounts) {
         PAID: 1,
         NO_CANCEL: 2,
         RENT: 3,
-        FINISHED: 4
+        CANCELED: 4,
+        FINISHED: 5
     };
 
     let instance, dateStart, dateEnd, noCancelPeriod, acceptObjectPeriod;
@@ -183,9 +184,12 @@ contract('Booking', function(accounts) {
 
     it("bad object (refund by client)", async function() {
         const assertCorrectCancel = async (msg) => {
-            assert.equal(state.OFFER, await instance.getCurrentState(), msg);
+            assert.equal(state.CANCELED, await instance.getCurrentState(), msg);
             assertBnEq(initClientBalance.sub(finney(0.2)), await getBalance(role.client), "result client balance: "+msg);
             assertBnEq(initOwnerBalance.add(finney(0.2)), await getBalance(role.owner), "result owner balance: "+msg);
+
+            // no resend funds
+            await expectThrow(instance.sendTransaction({gasPrice: 0, value: finney(1), from: role.client})) ;
         };
 
         let initClientBalance = await web3.eth.getBalance(role.client);
@@ -221,9 +225,12 @@ contract('Booking', function(accounts) {
 
     it("bad object (refund by owner)", async function() {
         const assertCorrectCancel = async (msg) => {
-            assert.equal(state.OFFER, await instance.getCurrentState(), msg);
+            assert.equal(state.CANCELED, await instance.getCurrentState(), msg);
             assertBnEq(initClientBalance.sub(finney(0.2)), await getBalance(role.client), "result client balance: "+msg);
             assertBnEq(initOwnerBalance.add(finney(0.2)), await getBalance(role.owner), "result owner balance: "+msg);
+
+            // no resend funds
+            await expectThrow(instance.sendTransaction({gasPrice: 0, value: finney(1), from: role.client}))
         };
 
         let initClientBalance = await web3.eth.getBalance(role.client);

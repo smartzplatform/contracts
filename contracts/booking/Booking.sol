@@ -51,7 +51,7 @@ contract Booking is Ownable {
     }
 
     /************************** STRUCTS **********************/
-    enum State {OFFER, PAID, NO_CANCEL, RENT, FINISHED}
+    enum State {OFFER, PAID, NO_CANCEL, RENT, CANCELED, FINISHED}
 
     /************************** MODIFIERS **********************/
 
@@ -172,6 +172,9 @@ contract Booking is Ownable {
         } else if (State.NO_CANCEL == _newState) {
             assert(false); // no direct change
 
+        } else if (State.CANCELED == _newState) {
+            assert(State.NO_CANCEL == currentState);
+
         } else if (State.RENT == _newState) {
             assert(State.NO_CANCEL == currentState);
 
@@ -184,7 +187,7 @@ contract Booking is Ownable {
         emit StateChanged(_newState);
     }
 
-    function getCurrentTime() internal view returns (uint256) {
+    function getCurrentTime() public view returns (uint256) {
         return now;
     }
 
@@ -202,7 +205,7 @@ contract Booking is Ownable {
     function refundWithCancellationFee() private {
         address client = m_client;
         m_client = address(0);
-        changeState(State.OFFER);
+        changeState(State.CANCELED);
 
         owner.transfer(m_cancellationFee);
         client.transfer(address(this).balance);
